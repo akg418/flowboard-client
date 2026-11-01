@@ -1,0 +1,92 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-sans: "Plus Jakarta Sans", "IBM Plex Sans Arabic", ui-sans-serif, system-ui, sans-serif;
+  --color-accent-50: #f1f0ff;
+  --color-accent-100: #e4e2ff;
+  --color-accent-200: #cbc7fe;
+  --color-accent-300: #a9a1fb;
+  --color-accent-400: #8a7cf6;
+  --color-accent-500: #6f5cef;
+  --color-accent-600: #5b45dc;
+  --color-accent-700: #4b37b8;
+}
+
+html, body, #root { height: 100%; }
+
+html { color-scheme: dark; }
+body {
+  @apply bg-[#0e0e11] text-stone-200 antialiased;
+}
+
+/* Arabic text reads better a touch larger */
+:lang(ar), [dir="rtl"] { font-family: "IBM Plex Sans Arabic", var(--font-sans); }
+
+::selection { @apply bg-accent-200 text-accent-700; }
+
+.scroll-thin { scrollbar-width: thin; scrollbar-color: rgb(255 255 255 / .12) transparent; }
+
+/* Our own accent scrollbar */
+.scroll-accent { scrollbar-width: thin; scrollbar-color: var(--color-accent-500) transparent; }
+.scroll-accent::-webkit-scrollbar { width: 6px; }
+.scroll-accent::-webkit-scrollbar-track { background: transparent; }
+.scroll-accent::-webkit-scrollbar-thumb { border-radius: 99px; background: linear-gradient(var(--color-accent-400), var(--color-accent-600)); }
+.scroll-accent::-webkit-scrollbar-thumb:hover { background: var(--color-accent-300); }
+
+/* Soft ambient glow behind the glass */
+.ambient::before, .ambient::after {
+  content: ""; position: fixed; z-index: -1; pointer-events: none; border-radius: 9999px; filter: blur(90px); opacity: .35;
+}
+.ambient::before { width: 520px; height: 520px; left: -160px; top: -140px; background: radial-gradient(circle, #6f5cef 0%, transparent 70%); }
+.ambient::after { width: 460px; height: 460px; right: -120px; bottom: -160px; background: radial-gradient(circle, #0ea5e9 0%, transparent 70%); opacity: .18; }
+
+@utility card {
+  @apply rounded-2xl border border-stone-200/70 bg-white shadow-[0_1px_2px_rgba(0,0,0,.03)] dark:border-white/5 dark:bg-white/[.03];
+}
+
+@utility input {
+  @apply w-full rounded-xl border border-stone-200 bg-white px-3 py-2 text-sm outline-none transition
+    focus:border-accent-300 focus:ring-4 focus:ring-accent-100
+    dark:border-white/10 dark:bg-white/5 dark:focus:border-accent-500 dark:focus:ring-accent-500/20;
+}
+
+@utility btn {
+  @apply inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-sm font-medium transition active:scale-[.97];
+}
+@utility btn-ghost { @apply btn text-stone-500 hover:bg-stone-100 hover:text-stone-800 dark:text-stone-400 dark:hover:bg-white/5 dark:hover:text-stone-100; }
+@utility btn-primary { @apply btn bg-accent-500 text-white shadow-sm shadow-accent-500/30 hover:bg-accent-600; }
+
+/* React Flow theming */
+.react-flow__attribution { display: none; }
+.dark .react-flow__controls button { @apply border-white/10 bg-stone-800 fill-stone-300; }
+
+/* Rich-text notes */
+.notes-editor { @apply min-h-24 text-sm leading-relaxed text-stone-200 outline-none; }
+.notes-editor > * + * { @apply mt-2; }
+.notes-editor h1 { @apply text-lg font-bold text-white; }
+.notes-editor h2 { @apply text-base font-semibold text-white; }
+.notes-editor h3 { @apply text-sm font-semibold text-stone-100; }
+.notes-editor ul:not([data-type="taskList"]) { @apply list-disc ps-5; }
+.notes-editor ol { @apply list-decimal ps-5; }
+.notes-editor li > p { @apply m-0; }
+.notes-editor li::marker { @apply text-accent-400; }
+.notes-editor blockquote { @apply border-s-2 border-accent-400/60 ps-3 text-stone-400 italic; }
+.notes-editor code { @apply rounded-md bg-white/10 px-1.5 py-0.5 font-mono text-[12.5px] text-accent-200; }
+.notes-editor pre { @apply rounded-lg bg-black/40 p-3; }
+.notes-editor pre code { @apply bg-transparent p-0; }
+.notes-editor a { @apply cursor-pointer text-accent-300 underline decoration-accent-400/40 underline-offset-2 hover:decoration-accent-300; }
+.notes-editor hr { @apply my-3 border-white/10; }
+.notes-editor ul[data-type="taskList"] { @apply ps-0; }
+.notes-editor ul[data-type="taskList"] li { @apply flex items-start gap-2; }
+.notes-editor ul[data-type="taskList"] li > label { @apply mt-[3px] shrink-0; }
+.notes-editor ul[data-type="taskList"] li > label input { @apply h-3.5 w-3.5 cursor-pointer accent-accent-500; }
+.notes-editor ul[data-type="taskList"] li[data-checked="true"] > div { @apply text-stone-500 line-through; }
+.notes-editor p.is-editor-empty:first-child::before { content: attr(data-placeholder); @apply pointer-events-none float-start h-0 text-stone-500; }
+
+/* While an edge is dragged: resized panels follow the pointer exactly; no text selection. */
+html[data-resizing], html[data-resizing] * { user-select: none; cursor: col-resize !important; }
+html[data-resizing] [data-resizable] { transition: none !important; }
+/* …and the page behind the task drawer stays visible while it's resized. */
+html[data-resizing] [data-scrim] { background: transparent; backdrop-filter: none; }
