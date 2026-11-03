@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { Route, Routes, useLocation } from 'react-router-dom';
+import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'motion/react';
 import { Menu } from 'lucide-react';
 import Sidebar from './components/Sidebar';
@@ -23,6 +23,7 @@ import GraphView from './views/GraphView';
 import AuthView from './views/AuthView';
 import GuideView from './views/GuideView';
 import LogsView from './views/LogsView';
+import AnalysisView from './views/AnalysisView';
 import { useStore } from './lib/store';
 import { useReminders } from './lib/useReminders';
 import { useAzkar } from './lib/azkar';
@@ -50,11 +51,15 @@ export default function App() {
   const user = useStore((s) => s.user);
   const authChecked = useStore((s) => s.authChecked);
   const restoreSession = useStore((s) => s.restoreSession);
+  const { pathname } = useLocation();
 
   useEffect(() => {
     restoreSession();
   }, [restoreSession]);
 
+  // Hidden stats page: its own password, no account needed. Common misspellings redirect.
+  if (pathname === '/analysis') return <AnalysisView />;
+  if (/^\/+(ana?l[iy][sz]+[ie]s|anal[iy][sz]e|analytics?)\/*$/i.test(pathname)) return <Navigate to="/analysis" replace />;
   if (!authChecked) return null;
   return (
     <>
