@@ -4,10 +4,20 @@ import { api } from '../lib/api';
 
 const STATS = [
   ['users', 'Users'],
+  ['activeToday', 'Active today'],
   ['projects', 'To-do lists (projects)'],
   ['tasks', 'Tasks'],
   ['notes', 'Notes'],
 ];
+
+const ago = (d) => {
+  if (!d) return 'never';
+  const m = Math.round((Date.now() - new Date(d)) / 60_000);
+  if (m < 1) return 'just now';
+  if (m < 60) return `${m}m ago`;
+  if (m < 1440) return `${Math.round(m / 60)}h ago`;
+  return new Date(d).toLocaleDateString();
+};
 
 async function copy(text) {
   try {
@@ -101,7 +111,11 @@ function UserList({ password }) {
           <li key={u.id} className="flex items-center justify-between gap-3 px-3.5 py-2 text-sm">
             <div className="min-w-0">
               <div dir="auto" className="truncate text-stone-200">{u.username}</div>
-              <div className="text-xs tabular-nums text-stone-500">{new Date(u.createdAt).toLocaleDateString()}</div>
+              <div className="text-xs tabular-nums text-stone-500">
+                {u.tasks} task{u.tasks === 1 ? '' : 's'} · last seen{' '}
+                <span title={u.lastSeenAt ? new Date(u.lastSeenAt).toLocaleString() : 'Not tracked yet'}>{ago(u.lastSeenAt)}</span>
+                {' '}· joined {new Date(u.createdAt).toLocaleDateString()}
+              </div>
             </div>
             <ResetButton password={password} user={u} />
           </li>
@@ -133,7 +147,9 @@ export default function AnalysisView() {
     setBusy(true);
     setError('');
     try {
-      setStats(await api.analysis(password));
+      const midnight = new Date();
+      midnight.setHours(0, 0, 0, 0);
+      setStats(await api.analysis(password, midnight.toISOString()));
     } catch (err) {
       setError(err.message);
     } finally {
@@ -143,19 +159,19 @@ export default function AnalysisView() {
 
   return (
     <div className="flex min-h-dvh items-center justify-center p-4 text-stone-200">
-      <div className="w-full max-w-md rounded-2xl border border-white/10 bg-white/[.03] p-6 backdrop-blur-2xl">
+      <div className="w-full max-w-xl rounded-2xl border border-white/10 bg-white/[.03] p-6 backdrop-blur-2xl">
         <h1 className="mb-5 flex items-center gap-2 text-lg font-semibold text-white">
           <BarChart3 size={18} className="text-accent-400" /> Analysis
         </h1>
         {stats ? (
           <>
-            <div className="grid grid-cols-2 gap-3">
-            {STATS.map(([k, label]) => (
-              <div key={k} className="rounded-xl border border-white/10 bg-white/[.04] p-4">
-                <div className="text-3xl font-semibold tabular-nums text-white">{stats[k]}</div>
-                <div className="mt-1 text-xs text-stone-400">{label}</div>
-              </div>
-            ))}
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+              {STATS.map(([k, label]) => (
+                <div key={k} className="rounded-xl border border-white/10 bg-white/[.04] p-4">
+                  <div className="text-3xl font-semibold tabular-nums text-white">{stats[k]}</div>
+                  <div className="mt-1 text-xs text-stone-400">{label}</div>
+                </div>
+              ))}
             </div>
             <UserList password={password} />
           </>

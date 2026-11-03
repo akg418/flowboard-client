@@ -50,7 +50,7 @@ export const api = {
   createNote: (body) => request('/notes', { method: 'POST', body }),
   updateNote: (id, body) => request(`/notes/${id}`, { method: 'PATCH', body }),
   removeNote: (id) => request(`/notes/${id}`, { method: 'DELETE' }),
-  analysis: (password) => request('/analysis', { method: 'POST', body: { password } }),
+  analysis: (password, since) => request('/analysis', { method: 'POST', body: { password, since } }),
   analysisUsers: (password, cursor) => request('/analysis/users', { method: 'POST', body: { password, cursor } }),
   analysisResetPassword: (password, id) => request(`/analysis/users/${id}/reset-password`, { method: 'POST', body: { password } }),
   logs: (before) => request(`/logs${before ? `?before=${encodeURIComponent(before)}` : ''}`),
