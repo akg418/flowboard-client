@@ -33,7 +33,11 @@ const AR_MONTHS = [
   'يناير|كانون الثاني', 'فبراير|شباط', 'مارس|اذار', 'ابريل|نيسان', 'مايو|ايار', 'يونيو|يونيه|حزيران',
   'يوليو|يوليه|تموز', 'اغسطس|اب', 'سبتمبر|ايلول', 'اكتوبر|تشرين الاول', 'نوفمبر|تشرين الثاني', 'ديسمبر|كانون الاول',
 ];
-const NEXT = '(?:\\s+(?:الجاي|الجايه|القادم|القادمه|اللي جاي|اللي جايه))?';
+// "السبت الجاي" / "اللي جي"; "اللي بعد (بعد) الجاي" or "اللي بعد 3 الجاي" skips that many weeks
+const COMING = '(?:الجاي|الجايه|الجي|القادم|القادمه|اللي\\s+(?:جاي|جايه|جي))';
+const AFTER_NEXT = `\\s+(?:اللي\\s+)?(?:بعد\\s+(\\d+)\\s+|(?:بعد\\s+)+)${COMING}`;
+const MAX_SKIP = 52; // cap for "اللي بعد N الجاي" (~a year)
+const NEXT = `(?:\\s+${COMING})?`;
 
 // Period words. NIGHT is special: "2 بالليل" means 2 AM.
 const NIGHT = 'بالليل|بليل|الليل|ليلا';
@@ -200,8 +204,9 @@ export function parseTask(input, now = new Date(), { projects = [] } = {}) {
   if (repeatDow != null && !day && !exact) day = addDays(startOfDay(now), (repeatDow - now.getDay() + 7) % 7);
   if (!day && !exact)
     AR_DAYS.some((names, dow) =>
-      take(rx(`(?:يوم\\s+)?(?:${names})${NEXT}`), () => {
-        day = addDays(startOfDay(now), (dow - now.getDay() + 7) % 7 || 7);
+      take(rx(`(?:يوم\\s+)?(?:${names})(${AFTER_NEXT}|${NEXT})`), (m) => {
+        const skip = Math.min(MAX_SKIP, m[2] ? +m[2] : (m[1].match(/بعد/g) || []).length);
+        day = addDays(startOfDay(now), ((dow - now.getDay() + 7) % 7 || 7) + 7 * skip);
       })
     );
 
